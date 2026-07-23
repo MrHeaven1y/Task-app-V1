@@ -43,7 +43,7 @@ function App() {
         if (!t.completed) {
           if (id === 'gmail_checker') setLastGmailCheck(Date.now().toString());
           if (id === 'portfolio_review') setLastPortfolioReview(Date.now().toString());
-          if (id === 'resume_review') setLastResumeReview(Date.now().toString());
+          if (id === 'resume_python' || id === 'resume_backend' || id === 'resume_ai_ml') setLastResumeReview(Date.now().toString());
         }
         return { ...t, completed: !t.completed };
       }
@@ -99,9 +99,11 @@ function App() {
     }
 
     // 3 Days = 3 * 24 * 60 * 60 * 1000 = 259200000 ms
-    const lastResTime = parseInt(lastResumeReview) || Date.now();
-    if (now.getTime() - lastResTime >= 259200000) {
-      newTasks.push({ id: 'resume_review', text: `Routine: Review & Update All 3 Resumes`, completed: false, type: 'chore' });
+    // Inject resume tasks on Mon/Wed/Fri
+    if (dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5) {
+      newTasks.push({ id: 'resume_python', text: 'Review & Update Python Dev – Full‑Stack resume', completed: false, type: 'chore' });
+      newTasks.push({ id: 'resume_backend', text: 'Review & Update System / Backend Engineer resume', completed: false, type: 'chore' });
+      newTasks.push({ id: 'resume_ai_ml', text: 'Review & Update AI/ML Engineer resume', completed: false, type: 'chore' });
     }
 
     if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -207,6 +209,7 @@ END:VCALENDAR`;
           <div className="title-group">
             <h1>TaskFlow</h1>
             {dayType && <span className={`day-badge badge-${dayType.split(' ')[0].toLowerCase()}`}>{dayType} Day</span>}
+          <div className="date-badge">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}</div>
           </div>
           <div className="header-actions">
             <div className="cycle-indicator">
@@ -283,7 +286,7 @@ END:VCALENDAR`;
               </div>
               <div className={`counter-card ${daysUntilResume === 0 ? 'due' : ''}`}>
                 <span className="counter-value">{daysUntilResume}</span>
-                <span className="counter-label">Resume Update</span>
+                <span className="counter-label">Resume Sprint</span>
               </div>
               <div className={`counter-card ${daysUntilPortfolio === 0 ? 'due' : ''}`}>
                 <span className="counter-value">{daysUntilPortfolio}</span>
