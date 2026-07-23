@@ -14,7 +14,7 @@ function App() {
   const [sleepHistory, setSleepHistory] = useState(() => JSON.parse(localStorage.getItem('sleepHistory')) || []);
   
   // Recurring Chores
-  const [lastGmailCheck, setLastGmailCheck] = useState(() => localStorage.getItem('lastGmailCheck') || '');
+  const [lastGmailCheck, setLastGmailCheck] = useState(() => localStorage.getItem('lastGmailCheck') || Date.now().toString());
 
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -61,15 +61,17 @@ function App() {
     setDayType(type);
     
     const newTasks = [
-      { id: Date.now() + '1', text: `Job Applications (${apps} apps)`, completed: false, type: 'core' },
-      { id: Date.now() + '2', text: `Networking (20 min)`, completed: false, type: 'core' },
-      { id: Date.now() + '3', text: `Placement Prep (50 min)`, completed: false, type: 'core' },
-      { id: Date.now() + '4', text: `Personal Brand (45 min)`, completed: false, type: 'core' },
+      { id: Date.now() + '1', text: `Job Applications (${apps} apps) - Extract to tracker`, completed: false, type: 'core' },
+      { id: Date.now() + '2', text: `Networking (20 min) - Draft targeted connections & follow-ups`, completed: false, type: 'core' },
+      { id: Date.now() + '3', text: `Placement Prep (50 min) - DSA & CS Fundamentals`, completed: false, type: 'core' },
+      { id: Date.now() + '4', text: `Personal Brand (45 min) - Work on Posts domain`, completed: false, type: 'core' },
+      { id: Date.now() + '5', text: `Write and publish LinkedIn Post`, completed: false, type: 'core' },
     ];
 
     const now = new Date();
     // 3 Days = 3 * 24 * 60 * 60 * 1000 = 259200000 ms
-    if (!lastGmailCheck || (now.getTime() - parseInt(lastGmailCheck)) >= 259200000) {
+    const lastCheckTime = parseInt(lastGmailCheck) || Date.now();
+    if (now.getTime() - lastCheckTime >= 259200000) {
       const lastDate = lastGmailCheck ? new Date(parseInt(lastGmailCheck)).toLocaleDateString() : 'Never';
       const todayDate = now.toLocaleDateString();
       newTasks.push({ id: 'gmail_checker', text: `Run Gmail Checker (Last: ${lastDate} | Check: ${todayDate})`, completed: false, type: 'chore' });
