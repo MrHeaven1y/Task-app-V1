@@ -224,6 +224,50 @@ input:checked + .slider:before { transform: translateX(20px); }
   gap: 20px;
 }
 
+/* Dashboard Counters */
+.dashboard-counters {
+  display: flex;
+  gap: 12px;
+}
+.counter-card {
+  flex: 1;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.3s;
+}
+.counter-card.due {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.counter-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+.counter-card.due .counter-value {
+  color: #fca5a5;
+  animation: pulse 2s infinite;
+}
+.counter-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
 /* Stats */
 .stats-board {
   background: rgba(0,0,0,0.2);
@@ -312,6 +356,10 @@ input:checked + .slider:before { transform: translateX(20px); }
 .task-item.chore {
   border-color: rgba(244, 63, 94, 0.4);
   background: rgba(244, 63, 94, 0.05);
+}
+.task-item.brand {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.05);
 }
 .task-item.completed { opacity: 0.6; }
 .task-item.completed .task-text { text-decoration: line-through; color: #64748b; }

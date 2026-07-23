@@ -15,6 +15,7 @@ function App() {
   
   // Recurring Chores
   const [lastGmailCheck, setLastGmailCheck] = useState(() => localStorage.getItem('lastGmailCheck') || Date.now().toString());
+  const [lastWeeklyRoutine, setLastWeeklyRoutine] = useState(() => localStorage.getItem('lastWeeklyRoutine') || Date.now().toString());
 
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -24,7 +25,8 @@ function App() {
     localStorage.setItem('wakeHistory', JSON.stringify(wakeHistory));
     localStorage.setItem('sleepHistory', JSON.stringify(sleepHistory));
     localStorage.setItem('lastGmailCheck', lastGmailCheck);
-  }, [tasks, dayState, dayType, useEma, wakeHistory, sleepHistory, lastGmailCheck]);
+    localStorage.setItem('lastWeeklyRoutine', lastWeeklyRoutine);
+  }, [tasks, dayState, dayType, useEma, wakeHistory, sleepHistory, lastGmailCheck, lastWeeklyRoutine]);
 
   const addTask = (e) => {
     e.preventDefault();
@@ -36,8 +38,9 @@ function App() {
   const toggleTask = (id) => {
     setTasks(tasks.map(t => {
       if (t.id === id) {
-        if (!t.completed && id === 'gmail_checker') {
-          setLastGmailCheck(Date.now().toString());
+        if (!t.completed) {
+          if (id === 'gmail_checker') setLastGmailCheck(Date.now().toString());
+          if (id === 'weekly_routine') setLastWeeklyRoutine(Date.now().toString());
         }
         return { ...t, completed: !t.completed };
       }
@@ -60,26 +63,36 @@ function App() {
     setDayState('AWAKE');
     setDayType(type);
     
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 is Sunday, 6 is Saturday
+
     const newTasks = [
-      { id: Date.now() + '1', text: `Job Applications (${apps} apps) - Extract to tracker`, completed: false, type: 'core' },
+      { id: Date.now() + '1', text: `Job Applications (${apps} apps) - Extract to tracker (Remember to Backup CSV!)`, completed: false, type: 'core' },
       { id: Date.now() + '2', text: `Networking (20 min) - Draft targeted connections & follow-ups`, completed: false, type: 'core' },
       { id: Date.now() + '3', text: `Placement Prep (50 min) - DSA & CS Fundamentals`, completed: false, type: 'core' },
-      { id: Date.now() + '4', text: `Personal Brand (45 min) - Work on Posts domain`, completed: false, type: 'core' },
-      { id: Date.now() + '5', text: `Write and publish LinkedIn Post`, completed: false, type: 'core' },
     ];
 
-    const now = new Date();
+    // Content Strategy Schedule
+    if (dayOfWeek === 1 || dayOfWeek === 4 || dayOfWeek === 6) { // Mon, Thu, Sat
+      newTasks.push({ id: Date.now() + '4', text: `Publish Tier 3 Post (Quick Concept)`, completed: false, type: 'brand' });
+    } else if (dayOfWeek === 3) { // Wed
+      newTasks.push({ id: Date.now() + '4', text: `Publish Tier 2 Post (Comparison Concept)`, completed: false, type: 'brand' });
+    } else if (dayOfWeek === 5) { // Fri
+      newTasks.push({ id: Date.now() + '4', text: `Publish Tier 1 Post (Deep Technical Dive)`, completed: false, type: 'brand' });
+    } else { // Tue, Sun
+      newTasks.push({ id: Date.now() + '4', text: `Drafting Day - Prep upcoming Posts`, completed: false, type: 'brand' });
+    }
+
     // 3 Days = 3 * 24 * 60 * 60 * 1000 = 259200000 ms
     const lastCheckTime = parseInt(lastGmailCheck) || Date.now();
     if (now.getTime() - lastCheckTime >= 259200000) {
-      const lastDate = lastGmailCheck ? new Date(parseInt(lastGmailCheck)).toLocaleDateString() : 'Never';
-      const todayDate = now.toLocaleDateString();
-      newTasks.push({ id: 'gmail_checker', text: `Run Gmail Checker (Last: ${lastDate} | Check: ${todayDate})`, completed: false, type: 'chore' });
+      newTasks.push({ id: 'gmail_checker', text: `Run gmail_checker.py to fetch job updates`, completed: false, type: 'chore' });
     }
 
-    const dayOfWeek = now.getDay(); // 0 is Sunday, 6 is Saturday
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-      newTasks.push({ id: 'weekend_dashboard', text: `Checkup Dashboard Updates (Weekend Routine)`, completed: false, type: 'chore' });
+    // 7 Days = 7 * 24 * 60 * 60 * 1000 = 604800000 ms
+    const lastWeeklyTime = parseInt(lastWeeklyRoutine) || Date.now();
+    if (now.getTime() - lastWeeklyTime >= 604800000 || dayOfWeek === 0) {
+      newTasks.push({ id: 'weekly_routine', text: `Weekly Routine: Portfolio & Resume Update / Checkup`, completed: false, type: 'chore' });
     }
 
     // Keep unfinished custom tasks, discard old core/chore tasks
@@ -162,6 +175,14 @@ END:VCALENDAR`;
   const total = tasks.length;
   const progress = total === 0 ? 0 : (streak / total) * 100;
 
+  // Calculate Countdowns
+  const msInDay = 24 * 60 * 60 * 1000;
+  const daysSinceGmail = Math.floor((Date.now() - (parseInt(lastGmailCheck) || Date.now())) / msInDay);
+  const daysUntilGmail = Math.max(0, 3 - daysSinceGmail);
+
+  const daysSinceWeekly = Math.floor((Date.now() - (parseInt(lastWeeklyRoutine) || Date.now())) / msInDay);
+  const daysUntilWeekly = Math.max(0, 7 - daysSinceWeekly);
+
   return (
     <div className="app-container">
       <div className="glass-panel">
@@ -238,6 +259,17 @@ END:VCALENDAR`;
 
         {dayState === 'AWAKE' && (
           <div className="awake-screen">
+            <div className="dashboard-counters">
+              <div className={`counter-card ${daysUntilGmail === 0 ? 'due' : ''}`}>
+                <span className="counter-value">{daysUntilGmail}</span>
+                <span className="counter-label">Days to Email Check</span>
+              </div>
+              <div className={`counter-card ${daysUntilWeekly === 0 ? 'due' : ''}`}>
+                <span className="counter-value">{daysUntilWeekly}</span>
+                <span className="counter-label">Days to Portfolio Review</span>
+              </div>
+            </div>
+
             <div className="stats-board">
               <div className="progress-bar">
                 <div className="progress-fill" style={{ width: `${progress}%` }}></div>
