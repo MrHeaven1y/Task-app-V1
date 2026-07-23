@@ -15,7 +15,8 @@ function App() {
   
   // Recurring Chores
   const [lastGmailCheck, setLastGmailCheck] = useState(() => localStorage.getItem('lastGmailCheck') || Date.now().toString());
-  const [lastWeeklyRoutine, setLastWeeklyRoutine] = useState(() => localStorage.getItem('lastWeeklyRoutine') || Date.now().toString());
+  const [lastPortfolioReview, setLastPortfolioReview] = useState(() => localStorage.getItem('lastPortfolioReview') || Date.now().toString());
+  const [lastResumeReview, setLastResumeReview] = useState(() => localStorage.getItem('lastResumeReview') || Date.now().toString());
 
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -25,8 +26,9 @@ function App() {
     localStorage.setItem('wakeHistory', JSON.stringify(wakeHistory));
     localStorage.setItem('sleepHistory', JSON.stringify(sleepHistory));
     localStorage.setItem('lastGmailCheck', lastGmailCheck);
-    localStorage.setItem('lastWeeklyRoutine', lastWeeklyRoutine);
-  }, [tasks, dayState, dayType, useEma, wakeHistory, sleepHistory, lastGmailCheck, lastWeeklyRoutine]);
+    localStorage.setItem('lastPortfolioReview', lastPortfolioReview);
+    localStorage.setItem('lastResumeReview', lastResumeReview);
+  }, [tasks, dayState, dayType, useEma, wakeHistory, sleepHistory, lastGmailCheck, lastPortfolioReview, lastResumeReview]);
 
   const addTask = (e) => {
     e.preventDefault();
@@ -40,7 +42,8 @@ function App() {
       if (t.id === id) {
         if (!t.completed) {
           if (id === 'gmail_checker') setLastGmailCheck(Date.now().toString());
-          if (id === 'weekly_routine') setLastWeeklyRoutine(Date.now().toString());
+          if (id === 'portfolio_review') setLastPortfolioReview(Date.now().toString());
+          if (id === 'resume_review') setLastResumeReview(Date.now().toString());
         }
         return { ...t, completed: !t.completed };
       }
@@ -89,10 +92,20 @@ function App() {
       newTasks.push({ id: 'gmail_checker', text: `Run gmail_checker.py to fetch job updates`, completed: false, type: 'chore' });
     }
 
-    // 7 Days = 7 * 24 * 60 * 60 * 1000 = 604800000 ms
-    const lastWeeklyTime = parseInt(lastWeeklyRoutine) || Date.now();
-    if (now.getTime() - lastWeeklyTime >= 604800000 || dayOfWeek === 0) {
-      newTasks.push({ id: 'weekly_routine', text: `Weekly Routine: Portfolio & Resume Update / Checkup`, completed: false, type: 'chore' });
+    // 5 Days = 5 * 24 * 60 * 60 * 1000 = 432000000 ms
+    const lastPortTime = parseInt(lastPortfolioReview) || Date.now();
+    if (now.getTime() - lastPortTime >= 432000000) {
+      newTasks.push({ id: 'portfolio_review', text: `Routine: Review & Update Portfolio`, completed: false, type: 'chore' });
+    }
+
+    // 3 Days = 3 * 24 * 60 * 60 * 1000 = 259200000 ms
+    const lastResTime = parseInt(lastResumeReview) || Date.now();
+    if (now.getTime() - lastResTime >= 259200000) {
+      newTasks.push({ id: 'resume_review', text: `Routine: Review & Update All 3 Resumes`, completed: false, type: 'chore' });
+    }
+
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      newTasks.push({ id: 'weekend_dashboard', text: `Checkup Dashboard Updates (Weekend Routine)`, completed: false, type: 'chore' });
     }
 
     // Keep unfinished custom tasks, discard old core/chore tasks
@@ -177,11 +190,15 @@ END:VCALENDAR`;
 
   // Calculate Countdowns
   const msInDay = 24 * 60 * 60 * 1000;
+  
   const daysSinceGmail = Math.floor((Date.now() - (parseInt(lastGmailCheck) || Date.now())) / msInDay);
   const daysUntilGmail = Math.max(0, 3 - daysSinceGmail);
 
-  const daysSinceWeekly = Math.floor((Date.now() - (parseInt(lastWeeklyRoutine) || Date.now())) / msInDay);
-  const daysUntilWeekly = Math.max(0, 7 - daysSinceWeekly);
+  const daysSincePortfolio = Math.floor((Date.now() - (parseInt(lastPortfolioReview) || Date.now())) / msInDay);
+  const daysUntilPortfolio = Math.max(0, 5 - daysSincePortfolio);
+
+  const daysSinceResume = Math.floor((Date.now() - (parseInt(lastResumeReview) || Date.now())) / msInDay);
+  const daysUntilResume = Math.max(0, 3 - daysSinceResume);
 
   return (
     <div className="app-container">
@@ -262,11 +279,15 @@ END:VCALENDAR`;
             <div className="dashboard-counters">
               <div className={`counter-card ${daysUntilGmail === 0 ? 'due' : ''}`}>
                 <span className="counter-value">{daysUntilGmail}</span>
-                <span className="counter-label">Days to Email Check</span>
+                <span className="counter-label">Email Check</span>
               </div>
-              <div className={`counter-card ${daysUntilWeekly === 0 ? 'due' : ''}`}>
-                <span className="counter-value">{daysUntilWeekly}</span>
-                <span className="counter-label">Days to Portfolio Review</span>
+              <div className={`counter-card ${daysUntilResume === 0 ? 'due' : ''}`}>
+                <span className="counter-value">{daysUntilResume}</span>
+                <span className="counter-label">Resume Update</span>
+              </div>
+              <div className={`counter-card ${daysUntilPortfolio === 0 ? 'due' : ''}`}>
+                <span className="counter-value">{daysUntilPortfolio}</span>
+                <span className="counter-label">Portfolio Check</span>
               </div>
             </div>
 
